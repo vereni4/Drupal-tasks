@@ -1,0 +1,5 @@
+; &Id:$
+name = My text block
+description = This module view a text block in all pages
+version = 7.x-dev
+core = 7.x

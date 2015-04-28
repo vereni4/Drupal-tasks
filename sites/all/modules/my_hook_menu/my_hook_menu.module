@@ -1,0 +1,35 @@
+<?php
+//$Id$
+
+/**
+ * Implements hook_menu()
+ */
+function my_hook_menu_menu() {
+	$items = array();
+	$items['home-page'] = array(
+		'title' 			=> 'Home page',
+		'page callback' 	=> 'creat_home_page',
+		'access callback' 	=> TRUE,
+	);
+	$items['error/%'] = array(
+		'title' 			=> 'Page error',
+		'page callback' 	=> 'creat_page_error',
+		'page arguments' 	=> array(1),
+		'access callback' 	=> TRUE,
+	);
+	return $items;
+}
+
+/**
+ * Creating home page
+ */
+function creat_home_page() {
+	return t('Hello world!');
+}
+
+/**
+ * Creating the error page
+ */
+function creat_page_error($error_code) {
+	return t('Error ' . $error_code . "! Pleas report to admin!");
+}

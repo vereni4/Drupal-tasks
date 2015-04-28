@@ -1,0 +1,5 @@
+; &Id:$
+name = My hook menu
+description = This is my hook menu with home, 403 and 404 pages
+version = 7.x-dev
+core = 7.x
