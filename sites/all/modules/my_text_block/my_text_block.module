@@ -6,7 +6,7 @@
  */
 function my_text_block_permission(){     
 	$arr = array();
-	$arr['My text block access'] = array(
+	$arr['my text block access'] = array(
 		'title' => t('My text block access'),
 		'description' => t('View my text block'),
 	);
@@ -20,7 +20,7 @@ function my_text_block_block_info() {
 	$blocks = array();
 	$blocks['my_text'] = array(
 		'info' => t('Text block'),
-		'cache' => DRUPAL_CACHE_GLOBAL,
+		'cache' => DRUPAL_NO_CACHE,
 	);
 	return $blocks;
 }
@@ -30,7 +30,11 @@ function my_text_block_block_info() {
  */
 function my_text_block_block_view($blockUID = '') {
 	$block = array();
-	if ($blockUID == 'my_text') {
+	if (user_access('my text block access')==FALSE) {
+      $block['subject'] = t('Access denied');
+      $block['content'] = 'access to view this content is denied.';
+	}
+	else if ($blockUID == 'my_text') {
       $block['subject'] = t('Text block');
       $block['content'] = 'My empty text.';
 	}

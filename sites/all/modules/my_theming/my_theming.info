@@ -1,0 +1,5 @@
+; &Id:$
+name = My theming
+description = This is my first theming.
+version = 7.x-dev
+core = 7.x

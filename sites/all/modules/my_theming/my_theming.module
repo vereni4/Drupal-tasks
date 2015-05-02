@@ -1,0 +1,95 @@
+<?php
+//$Id$
+
+/**
+ * Implements hook_menu()
+ */
+function my_theming_menu() {
+	$items = array();
+	$items['my-theming'] = array(
+		'title' 			=> 'My theming',
+		'page callback' 	=> '_my_theming',
+		'access callback' 	=> TRUE,
+	);
+	return $items;
+}
+
+/**
+ * Creating page my_theming 
+ */
+function _my_theming() {
+	// theme_item_list()
+	$list_items = array('item_1', 'item_2', 'item_3');
+	$my_item_list = theme('item_list', array(
+		'items' => $list_items,
+		'title' => t('Item list:'),
+		'type'  => 'ol',
+	));
+	// theme_fieldset()
+	drupal_add_library('system', 'drupal.collapse');
+	$my_fieldset = theme('fieldset', array('element' => array(
+		'#title' 		=> t('Fieldset'),
+		'#children' 	=> t('Text in fieldset!'),
+		'#collapsible' 	=> TRUE,
+		'#collapsed' 	=> TRUE,
+		'#attributes' 	=> array('class' => array('collapsible', 'collapsed')),
+	)));
+	// theme_table()
+	$my_table = theme('table', array(
+		'caption' 	=> t('My first table:'),
+		'empty' 	=> t('Table is empty'),
+		'header' 	=> array( 
+			array('data' => t('cell1')),   
+			array('data' => t('cell2')),   
+			array('data' => t('cell3')),   
+		),
+		'rows' 		=> array(array( 
+			array('data' => t('value 1')),  
+			array('data' => t('value 2')),  
+			array('data' => t('value 3')),
+		)),
+	));
+	// theme_image_style()
+	$my_image = theme('image_style', array(
+		'path' => 'Films Images/2.jpg',
+		'style_name' => 'medium',
+		'alt' => t('Alternate Text'),
+		'title' => t('Title Text'),
+	));
+	// theme_my_theming()
+	$my_theming_func = theme('my_theming_func', array(
+		'content' => t('This is a theme_function!'),
+	));
+	$my_theming_tpl = theme('my_theming', array(
+		'content' => t('This is a .tpl.php file!'),
+	));
+	return "$my_item_list" .
+		   "$my_fieldset" . 
+		   "$my_table" . 
+		   "$my_image" . 
+		   "$my_theming_func" . 
+		   "$my_theming_tpl";
+}
+
+/**
+ * Implements hook_theme()
+ */
+function my_theming_theme() {
+	$items = array();
+	$items['my_theming_func'] = array(
+		'variables' => array('content' => NULL),
+	);
+	$items['my_theming'] = array(
+		'variables' => array('content' => NULL),
+		'template' => 'my_theming',
+	);
+	return $items;
+}
+
+/**
+ * theme()
+ */ 
+function theme_my_theming_func($variables) {
+	$html = '<h2><strong>' . $variables['content'] . '</strong></h2>';
+	return $html;
+}
