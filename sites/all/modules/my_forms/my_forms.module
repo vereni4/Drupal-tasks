@@ -1,0 +1,125 @@
+<?php
+//$Id$
+
+/**
+ * Implements hook_menu()
+ */
+function my_forms_menu() {
+	$items = array();
+	$items['my-forms/contacts'] = array(
+		'title'           => t('Contacts'),
+		'page callback' 	=> 'drupal_get_form',
+		'page arguments' 	=> array('_get_form_contacts'),
+		'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+	);
+	return $items;
+}
+
+/**
+ * Define form contacts
+ */
+function _get_form_contacts() {
+	$form = array();
+  $form['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#title_display' => 'after',
+    '#description' => t('Please enter your name.'),
+  );
+  $form['surname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Surname'),
+    '#title_display' => 'after',
+    '#description' => t('Please enter your surname.'),
+  );
+  $form['nickname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Nickname'),
+    '#title_display' => 'after',
+    '#description' => t('Please enter your nickname.'),
+    '#required' => TRUE,
+  );
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('E-mail'),
+    '#title_display' => 'after',
+    '#description' => t('Please enter your e-mail address: example@email.com.'),
+    '#required' => TRUE,
+  );
+  $form['phone'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Phone number'),
+    '#title_display' => 'after',
+    '#description' => t('Please enter your phone number: (***)-***-****.'),
+  );
+  $form['gender'] = array(
+    '#type' => 'radios',
+    '#title' => t('Your gender'),
+    '#default_value' => 0,
+    '#options' => array(0 => t('Man'), 1 => t('Woman')),
+  );
+  $form['country'] = array(
+    '#type' => 'select',
+    '#title' => t('Country'),
+    '#default_value' => 0,
+    '#options' => array(0 => t('Ukraine'), 2 => t('Russia'), t('USA')),
+  );
+  $form['message'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message'),
+    '#description' => t('Please enter your message.'),
+    '#required' => TRUE,
+  );
+  $form['acception'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('I accept the rules of the site'),
+    '#required' => TRUE,
+  );
+  $info_text = t('Text more information.');
+  if (!empty($info_text)) {
+    $form['fieldset'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('More information'),
+      '#description' => $info_text,
+    );
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send'),
+  );
+  return $form;
+}
+
+/** 
+ * Validate function for _get_form_contacts. 
+ */
+function _get_form_contacts_validate($form, &$form_state) {
+  $values = $form_state['values'];
+  if (!preg_match("`[aA-zZ0-9]*@[aA-zZ0-9]*\.[aA-zZ]*`", $values['email'])) {
+    form_set_error('email', $values['email'] . ' is not email.');
+  }
+  if (!empty($values['phone']) &&
+      !preg_match("`^(\(\d{3}\)|\d{3})[- .]?\d{3}[- .]\d{4}$`", $values['phone'])) {
+    form_set_error('phone', $values['phone'] . ' is not phone.');
+  }
+}
+
+/** 
+ * Submit function for _get_form_contacts. 
+ */
+function _get_form_contacts_submit($form, &$form_state) {
+  $values   = $form_state['values'];
+  $gender   = array(0 => t('Man'), 1 => t('Woman'));
+  $country  = array(0 => t('Ukraine'), 2 => t('Russia'), t('USA'));
+  $msg = '';
+  $msg .= (empty($values['name']))?     '' : 'Name: ' . $values['name'] . ';<br/>';
+  $msg .= (empty($values['surname']))?  '' : 'Surname: ' . $values['surname'] . ';<br/>';
+  $msg .= (empty($values['nickname']))? '' : 'Nickname: ' . $values['nickname'] . ';<br/>';
+  $msg .= (empty($values['email']))?    '' : 'E-mail: ' . $values['email'] . ';<br/>';
+  $msg .= (empty($values['phone']))?    '' : 'Phone: ' . $values['phone'] . ';<br/>';
+  $msg .= 'Gender: ' . $gender[$values['gender']] . ';<br/>';
+  $msg .= 'Country: ' . $country[$values['country']] . ';<br/>';
+  $msg .= (empty($values['message']))?  '' : 'Message: ' . $values['message'] . ';<br/>';
+  drupal_set_message($msg);
+}

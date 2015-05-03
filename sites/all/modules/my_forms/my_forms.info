@@ -1,0 +1,5 @@
+; &Id:$
+name = My forms
+description = This is my first form
+version = 7.x-dev
+core = 7.x
