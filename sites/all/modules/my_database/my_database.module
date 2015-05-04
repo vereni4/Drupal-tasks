@@ -1,0 +1,256 @@
+<?php
+//$Id$
+
+/**
+ * Implements hook_menu()
+ */
+function my_database_menu() {
+	$items = array();
+	$items['my-database/insert'] = array(
+		'title'           => t('My database form'),
+		'page callback' 	=> 'drupal_get_form',
+		'page arguments' 	=> array('_get_form_for_my_database'),
+		'access callback' => TRUE,
+	);
+  $items['my-database/select'] = array(
+    'title'           => t('My database table'),
+    'page callback'   => '_get_page_with_table',
+		'access callback' => TRUE,
+  );
+  $items['my-database/update/%'] = array(
+    'page callback'   => 'drupal_get_form',
+    'page arguments'  => array('_get_form_for_update', 2),
+    'access callback' => TRUE,
+  );
+  $items['my-database/delete/%'] = array(
+    'title callback'  => '_get_title_for_delete_page',
+    'title arguments' => array(2),
+    'page callback'   => 'drupal_get_form',
+    'page arguments'  => array('_get_form_for_delete', 2),
+		'access callback' => TRUE,
+  );
+	return $items;
+}
+
+/**
+ * Define form for my database
+ */
+function _get_form_for_my_database() {
+  $form = array();
+  $form['number'] = array(
+    '#title'          => t('Number'),
+    '#type'           => 'textfield',
+    '#maxlength'      => 10,
+    '#title_display'  => 'after',
+    '#description'    => t('Please enter some number.'),
+    '#required'       => TRUE,
+  );
+  $form['teaser'] = array(
+    '#title'          => t('Teaser'),
+    '#type'           => 'textfield',
+    '#maxlength'      => 150,
+    '#title_display'  => 'after',
+    '#description'    => t('Please enter your title.'),
+    '#required'       => TRUE,
+  );
+  $form['text'] = array(
+    '#title'          => t('Text'),
+    '#type'           => 'textarea',
+    '#required'       => TRUE,
+  );
+  $form['submit'] = array(
+    '#type'           => 'submit',
+    '#value'          => t('Insert'),
+  );
+  return $form;
+}
+
+/** 
+ * Validate function for _get_form_for_my_database. 
+ */
+function _get_form_for_my_database_validate($form, &$form_state) {
+  $values = $form_state['values'];
+  if (drupal_strlen($values['number']) > 10) {
+    form_set_error('number', t('Number is so big!'));
+  }
+  else if (!ctype_digit($values['number'])) {
+    form_set_error('number', t('Number must contains an integer.'));
+  }
+  if (drupal_strlen($values['teaser']) > 150) {
+    form_set_error('teaser', t('Teaser is so big'));
+  }
+}
+
+/** 
+ * Submit function for _get_form_for_my_database. 
+ */
+function _get_form_for_my_database_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  $query = db_insert('custom_table')
+    ->fields(array(
+      'number' => $values['number'],
+      'teaser' => $values['teaser'],
+      'text'   => $values['text'],
+    ))
+    ->execute();
+  if ($query > 0) {
+    drupal_set_message(t('Data successfully written to the database.'));
+  }
+  else {
+    drupal_set_message(t('Failed to write data to the database!'), 'error');
+  }
+}
+
+/**
+ * Creating page my-database/select
+ */
+function _get_page_with_table() {
+  $rows = array();
+  $header = array(t('ID'), t('Number'), t('Teaser'), t('Text'), t('Actions'));
+  $query = db_select('custom_table', 'ct')
+    ->fields('ct')
+    ->orderBy('id', 'ASC')
+    ->execute();
+  while ($value = $query -> fetchAssoc()) {
+    $rows[] = array(
+      $value['id'],
+      $value['number'],
+      $value['teaser'],
+      $value['text'],
+      l(t('Update'), "my-database/update/{$value['id']}") . ' | ' .
+      l(t('Delete'), "my-database/delete/{$value['id']}"),
+    );
+  }
+  return theme('table', array(
+  	'caption' => t('My data table:'),
+		'empty' 	=> t('Table is empty'),
+    'header'  => $header,
+    'rows'    => $rows,
+  ));
+}
+
+/**
+ * Define form for update
+ */
+function _get_form_for_update($form, &$form_state) {
+  $form = array();
+  $id = $form_state['build_info']['args'][0];
+  $data = db_select('custom_table', 'ct')
+    ->condition('id', $id)
+    ->fields('ct')
+    ->execute()
+    ->fetchAssoc();
+ 
+  if (empty($data) || empty($data['number'])) {
+    $placeholders = array(
+      '@id' => $id,
+      '!back' => l(t('Go back'), 'my-database/select'),
+    );
+    $form['text'] = array(
+      '#markup' => t('Undefined "@id" id. !back.', $placeholders),
+    );
+    return $form;
+  }
+  $form['number'] = array(
+    '#title'          => t('Number'),
+    '#type'           => 'textfield',
+    '#maxlength'      => 10,
+    '#title_display'  => 'after',
+    '#description'    => t('Please enter some number.'),
+    '#required'       => TRUE,
+    '#default_value'  => $data['number'],
+  );
+  $form['teaser'] = array(
+    '#title'          => t('Teaser'),
+    '#type'           => 'textfield',
+    '#maxlength'      => 150,
+    '#title_display'  => 'after',
+    '#description'    => t('Please enter your title.'),
+    '#required'       => TRUE,
+    '#default_value'  => $data['teaser'],
+  );
+  $form['text'] = array(
+    '#title'          => t('Text'),
+    '#type'           => 'textarea',
+    '#required'       => TRUE,
+    '#default_value'  => $data['text'],
+  );
+  $form['actions'] = array('#type' => 'actions');
+  $form['actions']['submit'] = array(
+    '#type'       => 'submit',
+    '#value'      => t('Update'),
+  );
+  $form['actions']['cancel'] = array(
+    '#markup'     => l(t('Cancel'), 'my-database/select')
+  );
+  $form['#validate'][] = '_get_form_for_my_database_validate';
+  return $form;
+}
+
+/** 
+ * Submit function for _get_form_for_update. 
+ */
+function _get_form_for_update_submit($form, &$form_state) {
+  $id = $form_state['build_info']['args'][0];
+  $values = $form_state['values'];
+  $query = db_update('custom_table')
+    ->fields(array(
+      'number'  => $values['number'],
+      'teaser'  => $values['teaser'],
+      'text'    => $values['text'],
+    ))
+    ->condition('id', $id)
+    ->execute();
+  if ($query) {
+    drupal_set_message(t('Data updated successfully'));
+  }
+  else {
+    drupal_set_message(t('Data is not updated'), 'warning');
+  }
+  $form_state['redirect'] = 'my-database/select';
+}
+
+/**
+ * Creating title for delete page
+ */
+function _get_title_for_delete_page($id) {
+  $number = db_select('custom_table', 'ct')
+    ->fields('ct', array('number'))
+    ->condition('id', $id)
+    ->execute()
+    ->fetchField();
+  return t('Are you sure want to delete item "@num"?', array('@num' => $number));
+}
+
+/**
+ * Define form for delete
+ */
+function _get_form_for_delete($form, &$form_state) {
+  $form = array();
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete'),
+  );
+  $form['cancel'] = array(
+    '#markup' => l(t('Cancel'), 'my-database/select'),
+  );
+  return $form;
+}
+
+/** 
+ * Submit function for _get_form_for_delete. 
+ */
+function _get_form_for_delete_submit($form, &$form_state) {
+  $id = $form_state['build_info']['args'][0];
+  $result = db_delete('custom_table')
+    ->condition('id', $id)
+    ->execute();
+  $placeholders = array('@id' => $id);
+  if ($result) {
+    drupal_set_message(t('Record @id successfully removed.', $placeholders));
+  }
+  else {
+    drupal_set_message(t('Record @id is undefined.', $placeholders), 'warning');
+  }
+  $form_state['redirect'] = 'my-database/select';
+}

@@ -1,0 +1,37 @@
+<?php
+//$Id$
+
+/**
+ * Implements hook_schema()
+ */
+ function my_database_schema() {
+  $schema = array();
+  $schema['custom_table'] = array(
+    'description' => 'My custom table.',
+    'primary key' => array('id'),
+    'fields'      => array(
+      'id' => array(
+        'type'      => 'serial',
+        'unsigned'  => TRUE,
+        'not null'  => TRUE,
+      ),
+      'number' => array(
+        'type'      => 'int',
+        'unsigned'  => TRUE,
+        'not null'  => TRUE,
+        'default'   => 0,
+      ),
+      'teaser' => array(
+        'type'      => 'varchar',
+        'length'    => 150,
+        'not null'  => TRUE,
+        'default'   => '',
+      ),
+      'text' => array(
+        'type'      => 'text',
+      ),
+    ),
+  );
+  return $schema;
+ }
+ 
